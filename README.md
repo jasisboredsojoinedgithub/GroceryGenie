@@ -6,7 +6,7 @@
 - Sai Abhishek Yadav Battula - GroceryGenie https://github.com/jasisboredsojoinedgithub/GroceryGenie
 - Rishika Shankara - GroceryGenie https://github.com/jasisboredsojoinedgithub/GroceryGenie
 
-## Directory Structure
+### Directory Structure
 /GroceryGenie
 ├── static/
 │   ├── images/
@@ -14,14 +14,17 @@
 │   │   ├── main.js
 │   ├── style.css
 ├── templates/
-│   ├── dashboard.html  
-│   ├── inventory.html  
-│   ├── login.html  
-│   ├── profile.html  
-│   ├── recipe.html  
-│   ├── register.html  
-│   ├── suggestion.html  
-│── src/
+│   ├── layout.html
+│   ├── 404.html
+│   ├── 500.html
+│   ├── dashboard.html
+│   ├── inventory.html
+│   ├── login.html
+│   ├── profile.html
+│   ├── recipe.html
+│   ├── register.html
+│   ├── suggestion.html
+├── src/
 │   ├── app.py
 │   ├── config.py
 │   ├── routes/
@@ -33,7 +36,7 @@
 │   ├── utils/
 │   │   ├── ai_integration.py
 │   │   ├── image_processing.py
-├── uploads/ 
+├── uploads/
 ├── .env
-├── requirements.txt     <!-- Python dependencies -->
+├── requirements.txt
 ├── README.md
