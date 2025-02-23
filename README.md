@@ -1,12 +1,15 @@
 # GroceryGenie
-- Dimpal Lad - GroceryGenie https://github.com/jasisboredsojoinedgithub/GroceryGenie
-- Jiamin Wang - GroceryGenie https://github.com/jasisboredsojoinedgithub/GroceryGenie
-- Monitha Kothuru - GroceryGenie https://github.com/jasisboredsojoinedgithub/GroceryGenie
-- Niharika Mysore Prakasha - GroceryGenie https://github.com/jasisboredsojoinedgithub/GroceryGenie
-- Sai Abhishek Yadav Battula - GroceryGenie https://github.com/jasisboredsojoinedgithub/GroceryGenie
-- Rishika Shankara - GroceryGenie https://github.com/jasisboredsojoinedgithub/GroceryGenie
 
-### Directory Structure
+- **Dimpal Lad** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
+- **Jiamin Wang** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
+- **Monitha Kothuru** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
+- **Niharika Mysore Prakasha** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
+- **Sai Abhishek Yadav Battula** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
+- **Rishika Shankara** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
+
+## Directory Structure
+
+```
 /GroceryGenie
 ├── static/
 │   ├── images/
@@ -14,9 +17,6 @@
 │   │   ├── main.js
 │   ├── style.css
 ├── templates/
-│   ├── layout.html
-│   ├── 404.html
-│   ├── 500.html
 │   ├── dashboard.html
 │   ├── inventory.html
 │   ├── login.html
@@ -34,9 +34,8 @@
 │   │   ├── image_processing.py
 │   │   ├── error_handlers.py
 │   ├── utils/
-│   │   ├── ai_integration.py
-│   │   ├── image_processing.py
 ├── uploads/
 ├── .env
 ├── requirements.txt
 ├── README.md
+```
