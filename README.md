@@ -28,11 +28,10 @@
 │   ├── app.py
 │   ├── config.py
 │   ├── routes/
-│   │   ├── auth.py
-│   │   ├── inventory.py
+│   │   ├── auth.py  #Authentication routes (login/logout)
+│   │   ├── inventory.py 
 │   │   ├── recipe.py
 │   │   ├── image_processing.py
-│   │   ├── error_handlers.py
 │   ├── utils/
 ├── uploads/
 ├── .env
