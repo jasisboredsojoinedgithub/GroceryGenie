@@ -144,3 +144,116 @@ li {
 .recipe-section {
     width: 45%;
 }
+
+/* Set background image */
+body {
+    background: url('/static/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+/* Style the form container */
+.container {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+    width: 320px;  /* Compact form width */
+}
+
+/* Form inputs - Smaller input boxes */
+input {
+    width: 80%;
+    padding: 8px;
+    margin: 8px 0;  /* Adjusted spacing */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* Add space below the password field */
+input[type="password"] {
+    margin-bottom: 15px;  /* More space below password field */
+}
+
+/* Button styles */
+button {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px;  /* Slightly larger padding for better clickability */
+    width: 85%;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: 0.3s;
+    margin-top: 10px;  /* Add space above button */
+}
+
+
+
+button:hover {
+    background: #218838;
+}
+
+/* Flash messages */
+.message {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* General error message styling */
+.error-message {
+    color: red;
+    font-size: 14px;  /* Adjusted to match other text */
+    font-weight: normal;  
+    margin-top: 5px;
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+/* Removes bullet points */
+.error-message ul {
+    padding-left: 0;
+    list-style-type: none; 
+}
+
+.error-message li::before {
+    content: ""; /* Removes any bullet or symbol */
+}
+
+/* Success message (Green) */
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* Error message (Red) */
+.message.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Password mismatch message */
+#password_message {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 10px;  /* Add space for visibility */
+}
