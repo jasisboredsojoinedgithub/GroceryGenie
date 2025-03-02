@@ -1,15 +1,22 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_pymongo import PyMongo
+from dotenv import load_dotenv
+import os
+
+load_dotenv()# Load .env variables
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Change this for security
+app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 
-# Mock database (Replace this with an actual database)
-users = {'testuser': 'password123'}
+mongo = PyMongo(app)
+
+
 
 @app.route('/')
 def home():
     if 'username' in session:
-        return render_template('home.html', username=session['username'])
+        return render_template('dashborad.html', username=session['username'])
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
