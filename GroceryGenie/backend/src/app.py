@@ -2,11 +2,15 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 import openai
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="../../frontend/templates")
 app.secret_key = 'supersecretkey'  
 
 # In-memory storage for grocery items
 inventory = []
+
+@app.route("/profile", methods=['GET', 'POST'])
+def profile():
+    return render_template("profile.html")
 
 @app.route("/")
 def main():
