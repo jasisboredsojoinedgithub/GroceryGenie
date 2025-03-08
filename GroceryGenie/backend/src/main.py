@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="fronend/templates")
 app.secret_key = 'supersecretkey'  # Change this for security
 
 # Mock database (Replace this with an actual database)
