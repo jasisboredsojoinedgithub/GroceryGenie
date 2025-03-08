@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 import openai
 import os
 
-app = Flask(__name__, template_folder="../../frontend/templates")
+app = Flask(__name__, static_folder='../../frontend/static', template_folder="../../frontend/templates")
 app.secret_key = 'supersecretkey'  
 
 # In-memory storage for grocery items
