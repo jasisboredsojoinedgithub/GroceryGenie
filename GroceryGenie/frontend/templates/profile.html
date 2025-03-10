@@ -4,46 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <div class="container">
-        <h2>User Profile</h2>
-        <form enctype="multipart/form-data">
-            <div class="profile-pic-container">
-                <img src="{{ url_for('static', filename='images/default-profile.jpg') }}" alt="Profile Picture" id="profilePic">
-                <input type="file" name="profile_pic" id="profilePicInput">
-            </div>
+<body class="profile-page">
+    <div class="container d-flex justify-content-center align-items-center">
+        <div class="card shadow-lg" style="width: 600px;">
+            <div class="card-body text-center">
+                <h2 class="mb-4">User Profile</h2>
+                
+                <!-- Profile Picture -->
+                <div class="profile-pic-container mb-3">
+                    <img src="{{ url_for('static', filename='images/default-profile.jpg') }}" 
+                         class="rounded-circle border border-3 mb-2" 
+                         style="width: 130px; height: 130px;" id="profilePic">
+                    <input type="file" name="profile_pic" class="form-control mt-2" id="profilePicInput">
+                </div>
 
-            <div class="input-group">
-                <label for="first_name">First Name:</label>
-                <input type="text" id="first_name" name="first_name" required>
-            </div>
+                <!-- Form Fields -->
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First Name" required>
+                        <label for="first_name">First Name</label>
+                    </div>
 
-            <div class="input-group">
-                <label for="last_name">Last Name:</label>
-                <input type="text" id="last_name" name="last_name" required>
-            </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Last Name" required>
+                        <label for="last_name">Last Name</label>
+                    </div>
 
-            <div class="input-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-            </div>
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                        <label for="email">Email</label>
+                    </div>
 
-            <div class="input-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                        <label for="password">Password</label>
+                    </div>
 
-            <div class="input-group">
-                <label for="country">Country:</label>
-                <input type="text" id="country" name="country" required>
-            </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="country" name="country" placeholder="Country" required>
+                        <label for="country">Country</label>
+                    </div>
 
-            <button type="submit">Update Profile</button>
-        </form>
+                    <button type="submit" class="btn btn-success w-100">Update Profile</button>
+                </form>
+            </div>
+        </div>
     </div>
 
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script>
         document.getElementById("profilePicInput").addEventListener("change", function(event) {
             const file = event.target.files[0];
