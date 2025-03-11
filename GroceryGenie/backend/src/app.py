@@ -1,20 +1,67 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 import openai
 import os
+import logging
 
 app = Flask(__name__, static_folder='../../frontend/static', template_folder="../../frontend/templates")
-app.secret_key = 'supersecretkey'  
+app.secret_key = 'supersecretkey'  # Please change the secret key as needed
 
 # In-memory storage for grocery items
 inventory = []
 
+# Simulated user database (replace with a real database)
+users = {'testuser': 'password123'}
+
+# Root route: displays different pages based on the user's login status
+@app.route("/")
+def index():
+    if 'username' in session:
+        return render_template("dashborad.html", username=session['username'])
+    else:
+        return render_template("dashboard.html")
+
+# User authentication related routes
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if username in users and users[username] == password:
+            session['username'] = username
+            flash('Login Successful!', 'success')
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid Credentials, Try Again.', 'danger')
+    
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if username in users:
+            flash('Username already exists!', 'warning')
+        else:
+            users[username] = password
+            flash('Registration successful! Please log in.', 'success')
+            return redirect(url_for('login'))
+    
+    return render_template('register.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
+
+# Other functional routes
+
 @app.route("/profile", methods=['GET', 'POST'])
 def profile():
     return render_template("profile.html")
-
-@app.route("/")
-def main():
-    return render_template("main.html")
 
 @app.route("/suggestion")
 def suggestion():
@@ -23,9 +70,9 @@ def suggestion():
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
-    image_url = "https://media.istockphoto.com/id/842160124/photo/refrigerator-with-fruits-and-vegetables.jpg?s=1024x1024&w=is&k=20&c=EyLsx0KNKvsVYSK0_7dkTmjtTwJVFfpQXqU1cs1MgsQ="
+    image_url = "https://media.istockphoto.com/id/842160124/photo-refrigerator-with-fruits-and-vegetables.jpg?s=1024x1024&w=is&k=20&c=EyLsx0KNKvsVYSK0_7dkTmjtTwJVFfpQXqU1cs1MgsQ="
     analysis_result = analyze_image_with_openai(image_url)
-    session['recipe_suggestions'] = analysis_result['recipes']
+    session['recipe_suggestions'] = analysis_result.get('recipes', [])
     return redirect(url_for('suggestion'))
 
 @app.route("/recipe_details", methods=["POST"])
@@ -36,7 +83,6 @@ def recipe_details():
 
 @app.route("/grocery_analyze", methods=["POST"])
 def grocery_analyze():
-
     image_url = ""
     
     prompt = (
@@ -55,14 +101,14 @@ def grocery_analyze():
 
     analysis = response.choices[0].message['content']
     items = analysis.split(',')
-    objects = [{"name": items[i].strip(), "quantity": items[i + 1].strip() if (i + 1) < len(items) and items[i + 1].strip().isdigit() else "1"} for i in range(0, len(items), 2)]
-
-
+    objects = [{"name": items[i].strip(), 
+                "quantity": items[i + 1].strip() if (i + 1) < len(items) and items[i + 1].strip().isdigit() else "1"} 
+                for i in range(0, len(items), 2)]
     inventory.extend(objects)
 
     return jsonify(objects), 201
 
-
+# Inventory management related routes
 @app.route("/inventory", methods=["GET"])
 def get_inventory():
     return jsonify(inventory)
@@ -90,10 +136,11 @@ def delete_item(item_index):
     else:
         return jsonify({"message": "Item not found!"}), 404
 
+# Helper functions
+
 def analyze_image_with_openai(image_url):
     logging.debug(f"Analyzing image: {image_url}")
     
-    # Prompt now explicitly asks for extracting food items
     prompt = f"""
     You are an AI assistant skilled in detecting food items from images.
     Analyze the contents of this image: {image_url}. 
@@ -105,7 +152,6 @@ def analyze_image_with_openai(image_url):
     """
 
     try:
-        # Use OpenAI API to analyze the image content
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
@@ -114,17 +160,15 @@ def analyze_image_with_openai(image_url):
             ]
         )
 
-        # Process the response
         full_response = response.choices[0].message.content
         
-        # Split the response into food items and recipes parts
+        # Split the ingredients and recipes parts
         items_part, recipes_part = full_response.split('|')
         
-        # Process food items
         items = items_part.split(',')
-        objects = [{"name": items[i].strip(), "expiration_date": items[i + 1].strip() if (i + 1) < len(items) else "null"} for i in range(0, len(items), 2)]
+        objects = [{"name": items[i].strip(), "expiration_date": items[i + 1].strip() if (i + 1) < len(items) else "null"} 
+                   for i in range(0, len(items), 2)]
         
-        # Process recipes
         recipes = [recipe.strip() for recipe in recipes_part.split(',')]
         
         return {"objects": objects, "recipes": recipes}
@@ -132,7 +176,6 @@ def analyze_image_with_openai(image_url):
     except Exception as e:
         logging.error(f"Error during API call: {str(e)}")
         return {"error": str(e)}
-
 
 def suggest_recipes(objects):
     ingredients_list = ", ".join([obj['name'] for obj in objects])
@@ -166,7 +209,5 @@ def get_detailed_recipe(recipe_name):
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
 
 
