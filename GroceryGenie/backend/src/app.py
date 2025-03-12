@@ -2,9 +2,17 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 import openai
 import os
 import logging
+from pymongo import MongoClient
 
 app = Flask(__name__, static_folder='../../frontend/static', template_folder="../../frontend/templates")
 app.secret_key = 'supersecretkey'  # Please change the secret key as needed
+
+
+# MongoDB Connection
+MONGO_URI = "mongodb+srv://dimpal:Dimpal22@grocerygeniecluster.zucwq.mongodb.net/?retryWrites=true&w=majority&appName=GroceryGenieCluster"
+client = MongoClient(MONGO_URI)
+db = client["GroceryGenieDB"]
+users_collection = db["users"]  # Profile users collection
 
 # In-memory storage for grocery items
 inventory = []
@@ -61,7 +69,29 @@ def logout():
 
 @app.route("/profile", methods=['GET', 'POST'])
 def profile():
-    return render_template("profile.html")
+    if request.method == "POST":
+        data = {
+            "first_name": request.form["first_name"],
+            "last_name": request.form["last_name"],
+            "email": request.form["email"],
+            # "password": request.form["password"],
+            "country": request.form["country"]
+        }
+        
+        # Check if user exists
+        existing_user = users_collection.find_one({"email": data["email"]})
+        if existing_user:
+            users_collection.update_one({"email": data["email"]}, {"$set": data})
+        else:
+            users_collection.insert_one(data)
+
+        return redirect(url_for("profile"))
+    
+    # Fetch user details
+    user_data = users_collection.find_one({"email": "test@example.com"})  # Change this to dynamic email fetching
+    return render_template("profile.html", user=user_data)
+
+
 
 @app.route("/suggestion")
 def suggestion():
