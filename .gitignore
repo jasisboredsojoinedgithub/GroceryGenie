@@ -1,2 +1,2 @@
-env.env
+backend/src/.env
 venv/
