@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}GroceryGenie{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="navbar">
+    <ul class="nav-list">
+      <li><a href="{{ url_for('home') }}" class="{% if request.path == url_for('home') %}active{% endif %}">Home</a></li>
+      <li><a href="{{ url_for('index') }}" class="{% if request.path == url_for('index') %}active{% endif %}">Dashboard</a></li>
+      {% if session.get('username') %}
+        <li><a href="{{ url_for('inventory_page') }}" class="{% if request.path == url_for('inventory_page') %}active{% endif %}">Inventory</a></li>
+        <li><a href="{{ url_for('profile') }}" class="{% if request.path == url_for('profile') %}active{% endif %}">Profile</a></li>
+        <li><a href="{{ url_for('suggestion') }}" class="{% if request.path == url_for('suggestion') %}active{% endif %}">Suggestions</a></li>
+        <li><a href="{{ url_for('logout') }}">Logout ({{ session['username'] }})</a></li>
+      {% else %}
+        <li><a href="{{ url_for('login') }}" class="{% if request.path == url_for('login') %}active{% endif %}">Login</a></li>
+        <li><a href="{{ url_for('register') }}" class="{% if request.path == url_for('register') %}active{% endif %}">Register</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for category, message in messages %}
+          <li class="flash {{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>
+
