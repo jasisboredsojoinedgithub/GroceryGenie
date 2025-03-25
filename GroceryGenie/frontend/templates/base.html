@@ -9,7 +9,7 @@
   <nav class="navbar">
     <ul class="nav-list">
       <li><a href="{{ url_for('home') }}" class="{% if request.path == url_for('home') %}active{% endif %}">Home</a></li>
-      <li><a href="{{ url_for('index') }}" class="{% if request.path == url_for('index') %}active{% endif %}">Dashboard</a></li>
+      <li><a href="{{ url_for('dashboard') }}" class="{% if request.path == url_for('dashboard') %}active{% endif %}">Dashboard</a></li>
       {% if session.get('username') %}
         <li><a href="{{ url_for('inventory_page') }}" class="{% if request.path == url_for('inventory_page') %}active{% endif %}">Inventory</a></li>
         <li><a href="{{ url_for('profile') }}" class="{% if request.path == url_for('profile') %}active{% endif %}">Profile</a></li>
