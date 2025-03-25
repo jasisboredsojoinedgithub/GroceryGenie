@@ -1,11 +1,9 @@
-from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
 
-MONGO_URI = "mongodb+srv://dimpal:Dimpal22@grocerygeniecluster.zucwq.mongodb.net/?retryWrites=true&w=majority&appName=GroceryGenieCluster"
-client = MongoClient(MONGO_URI)
+# Load environment variables
+env_path = os.path.join(os.path.dirname(__file__), "env.env")
+load_dotenv(dotenv_path=env_path)
 
-# Create Database and Collection
-db = client["GroceryGenieDB"]
-users_collection = db["users"]
-
-# Ensure 'email' is unique
-users_collection.create_index("email", unique=True)
+SECRET_KEY = os.getenv("SECRET_KEY")
+MONGO_URI = os.getenv("MONGO_URI")
