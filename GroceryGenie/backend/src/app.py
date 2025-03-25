@@ -6,7 +6,7 @@ import openai
 from dotenv import load_dotenv  # Load environment variables from .env file
 from config import MONGO_URI, SECRET_KEY
 
-# Load variables from .env file
+# Load environment variables first
 load_dotenv()
 
 # Initialize Flask app
