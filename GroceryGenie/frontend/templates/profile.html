@@ -24,27 +24,22 @@
                 <!-- Form Fields -->
                 <form method="POST" enctype="multipart/form-data">
                     <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First Name" required>
+                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name if user else '' }}" placeholder="First Name" required>
                         <label for="first_name">First Name</label>
                     </div>
 
                     <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Last Name" required>
+                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name if user else '' }}" placeholder="Last Name" required>
                         <label for="last_name">Last Name</label>
                     </div>
 
                     <div class="form-floating mb-3">
-                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email if user else '' }}" placeholder="Email" required>
                         <label for="email">Email</label>
                     </div>
 
                     <div class="form-floating mb-3">
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-                        <label for="password">Password</label>
-                    </div>
-
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="country" name="country" placeholder="Country" required>
+                        <input type="text" class="form-control" id="country" name="country" value="{{ user.country if user else '' }}" placeholder="Country">
                         <label for="country">Country</label>
                     </div>
 
