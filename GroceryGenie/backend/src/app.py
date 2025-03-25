@@ -9,6 +9,7 @@ from dotenv import load_dotenv  # Load environment variables from .env file
 load_dotenv()
 
 # Initialize Flask app
+# Initialize Flask app
 app = Flask(__name__, static_folder='../../frontend/static', template_folder='../../frontend/templates')
 app.secret_key = os.environ.get("SECRET_KEY", "supersecretkey")  # Fallback to default if not set
 
@@ -39,7 +40,7 @@ def home():
     return render_template("home.html")
 
 @app.route("/")
-def index():
+def dashboard():
     if 'username' in session:
         return render_template("dashboard.html", username=session['username'])
     else:
@@ -54,7 +55,7 @@ def login():
         if user and user.get("password") == password:
             session['username'] = username
             flash('Login Successful!', 'success')
-            return redirect(url_for('index'))
+            return redirect(url_for('dashboard'))
         else:
             flash('Invalid Credentials, Try Again.', 'danger')
     return render_template('login.html')
