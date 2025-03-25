@@ -4,77 +4,81 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from pymongo import MongoClient
 import openai
 from dotenv import load_dotenv  # Load environment variables from .env file
+from config import MONGO_URI, SECRET_KEY
 
-# Load variables from .env file
-# Use absolute path to load .env from the project root
-env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../.env'))
-load_dotenv(dotenv_path=env_path, override=True)
-print(f"🔍 Looking for .env at: {env_path}")
-print(f"📄 .env exists: {os.path.exists(env_path)}")
-print("✅ Loaded MONGO_URI from .env:", os.environ.get("MONGO_URI"))
+# Load environment variables first
+load_dotenv()
 
-
-# Initialize Flask app
 # Initialize Flask app
 app = Flask(__name__, static_folder='../../frontend/static', template_folder='../../frontend/templates')
-app.secret_key = os.environ.get("SECRET_KEY", "supersecretkey")  # Fallback to default if not set
 
-# Load MongoDB URI from environment variables
-MONGO_URI = os.environ.get("MONGO_URI")
+# Set secret_key
+app.secret_key = SECRET_KEY
 
 # Validate MongoDB URI
 if not MONGO_URI:
-    raise ValueError("❌ MONGO_URI is not set. Please check your .env file.")
+    raise ValueError("MONGO_URI is not set. Please check your .env file.")
 
 # Initialize MongoDB client and test the connection
 try:
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+    client = MongoClient(MONGO_URI)
     client.admin.command('ping')
-    print("✅ MongoDB connection successful.")
+    print("MongoDB connection successful.")
 except Exception as e:
-    print("❌ MongoDB connection failed:", e)
+    print("MongoDB connection failed:", e)
 
 # Connect to the database and user collection
-db = client.get_database("grocery_genie")
+client = MongoClient(MONGO_URI)
+db = client.get_database("GroceryGenieDB")
 users_collection = db.users
 
-# Temporary in-memory inventory (can be moved to MongoDB)
+# Temporary in-memor
+# y inventory (can be moved to MongoDB)
 inventory = []
 
-@app.route("/home")
+@app.route("/")
 def home():
     return render_template("home.html")
 
-@app.route("/")
+@app.route("/dashboard")
 def dashboard():
-    if 'username' in session:
-        return render_template("dashboard.html", username=session['username'])
+    if 'email' in session:
+        return render_template("dashboard.html", email=session['email'])
     else:
         return render_template("dashboard.html")
 
+# User login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        # Retrieve email and password from the form
+        email = request.form['email']
         password = request.form['password']
-        user = users_collection.find_one({"username": username})
+
+        # Find the user in the database
+        user = users_collection.find_one({"email": email})
         if user and user.get("password") == password:
-            session['username'] = username
+            session['email'] = email
             flash('Login Successful!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid Credentials, Try Again.', 'danger')
     return render_template('login.html')
 
+# User registration route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
+        # Retrieve email and password from the form
+        email = request.form['email']
         password = request.form['password']
-        if users_collection.find_one({"username": username}):
-            flash('Username already exists!', 'warning')
+
+        # Check if the email already exists in the database
+        if users_collection.find_one({"email": email}):
+            flash('Email already registered!', 'warning')
         else:
-            user = {"username": username, "password": password}
+            # For production, use password hashing (e.g., bcrypt)
+            user = {"email": email, "password": password}
             users_collection.insert_one(user)
             flash('Registration successful! Please log in.', 'success')
             return redirect(url_for('login'))
@@ -88,10 +92,10 @@ def logout():
 
 @app.route("/profile", methods=['GET', 'POST'])
 def profile():
-    if 'username' not in session:
+    if 'email' not in session:
         flash('Please log in first', 'warning')
         return redirect(url_for('login'))
-    user = users_collection.find_one({"username": session['username']})
+    user = users_collection.find_one({"email": session['email']})
     return render_template("profile.html", user=user)
 
 @app.route("/suggestion")
