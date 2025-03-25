@@ -6,7 +6,13 @@ import openai
 from dotenv import load_dotenv  # Load environment variables from .env file
 
 # Load variables from .env file
-load_dotenv()
+# Use absolute path to load .env from the project root
+env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../.env'))
+load_dotenv(dotenv_path=env_path, override=True)
+print(f"🔍 Looking for .env at: {env_path}")
+print(f"📄 .env exists: {os.path.exists(env_path)}")
+print("✅ Loaded MONGO_URI from .env:", os.environ.get("MONGO_URI"))
+
 
 # Initialize Flask app
 # Initialize Flask app
