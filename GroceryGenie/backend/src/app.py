@@ -45,50 +45,61 @@ def dashboard():
     if 'email' in session:
         return render_template("dashboard.html", email=session['email'])
     else:
-        return render_template("dashboard.html")
+        flash('Please log in to view the dashboard.', 'warning')
+        return redirect(url_for('login'))
+
 
 # User login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Retrieve email and password from the form
-        email = request.form['email']
-        password = request.form['password']
+        email = request.form.get('email')
+        password = request.form.get('password')
 
-        # Find the user in the database
+        if not email or not password:
+            flash('Email and password are required.', 'danger')
+            return redirect(url_for('login'))
+
         user = users_collection.find_one({"email": email})
         if user and user.get("password") == password:
             session['email'] = email
             flash('Login Successful!', 'success')
             return redirect(url_for('dashboard'))
         else:
-            flash('Invalid Credentials, Try Again.', 'danger')
+            flash('Invalid credentials, please try again.', 'danger')
+            return redirect(url_for('login'))
+
     return render_template('login.html')
 
-# User registration route
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        # Retrieve email and password from the form
-        email = request.form['email']
-        password = request.form['password']
+        email = request.form.get('email')
+        password = request.form.get('password')
 
-        # Check if the email already exists in the database
+        if not email or not password:
+            flash('Email and password are required.', 'danger')
+            return redirect(url_for('register'))
+
         if users_collection.find_one({"email": email}):
             flash('Email already registered!', 'warning')
         else:
-            # For production, use password hashing (e.g., bcrypt)
             user = {"email": email, "password": password}
             users_collection.insert_one(user)
-            flash('Registration successful! Please log in.', 'success')
-            return redirect(url_for('login'))
+            session['email'] = email  # Auto-login after register
+            flash('Registration successful! Welcome 🎉', 'success')
+            return redirect(url_for('dashboard'))
+
     return render_template('register.html')
+
 
 @app.route('/logout')
 def logout():
-    session.pop('username', None)
+    session.pop('email', None)
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
+
 
 @app.route("/profile", methods=['GET', 'POST'])
 def profile():
