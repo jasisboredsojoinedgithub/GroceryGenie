@@ -5,6 +5,8 @@ from pymongo import MongoClient
 import openai
 from dotenv import load_dotenv  # Load environment variables from .env file
 from config import MONGO_URI, SECRET_KEY
+from bcrypt import hashpw, gensalt, checkpw
+from werkzeug.utils import secure_filename
 
 # Load environment variables first
 load_dotenv()
@@ -31,6 +33,9 @@ except Exception as e:
 client = MongoClient(MONGO_URI)
 db = client.get_database("GroceryGenieDB")
 users_collection = db.users
+profiles_collection = db.profiles
+
+
 
 # Temporary in-memor
 # y inventory (can be moved to MongoDB)
@@ -57,7 +62,8 @@ def login():
 
         # Find the user in the database
         user = users_collection.find_one({"email": email})
-        if user and user.get("password") == password:
+
+        if user and checkpw(password.encode('utf-8'), user['password']):
             session['email'] = email
             flash('Login Successful!', 'success')
             return redirect(url_for('dashboard'))
@@ -77,8 +83,10 @@ def register():
         if users_collection.find_one({"email": email}):
             flash('Email already registered!', 'warning')
         else:
-            # For production, use password hashing (e.g., bcrypt)
-            user = {"email": email, "password": password}
+            # Hash the password before storing
+            hashed_password = hashpw(password.encode('utf-8'), gensalt())
+            user = {"email": email, "password": hashed_password}
+            print(hashed_password)
             users_collection.insert_one(user)
             flash('Registration successful! Please log in.', 'success')
             return redirect(url_for('login'))
@@ -86,17 +94,67 @@ def register():
 
 @app.route('/logout')
 def logout():
-    session.pop('username', None)
+    session.pop('email', None)
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
+
+# Directory for storing profile pictures
+UPLOAD_FOLDER = os.path.join(app.static_folder, 'images/profile_pics')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route("/profile", methods=['GET', 'POST'])
 def profile():
     if 'email' not in session:
         flash('Please log in first', 'warning')
         return redirect(url_for('login'))
-    user = users_collection.find_one({"email": session['email']})
-    return render_template("profile.html", user=user)
+    
+    email = session['email']
+    profile = profiles_collection.find_one({"email": email})
+
+    if request.method == 'POST':
+        first_name = request.form.get("first_name")
+        last_name = request.form.get("last_name")
+        country = request.form.get("country")
+
+        # Fetch profile only if we need previous values (avoiding unnecessary DB calls)
+        profile = profiles_collection.find_one({"email": email}) or {}
+        
+        # Handle profile picture upload
+        if 'profile_pic' in request.files:
+            file = request.files['profile_pic']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                profile_pic_url = f"static/images/profile_pics/{filename}"
+            else:
+                profile_pic_url = profile.get('profile_pic', 'static/images/default-profile.jpg')
+        else:
+            profile_pic_url = profile.get('profile_pic', 'static/images/default-profile.jpg')
+
+        # Update or insert profile in the `profiles` collection
+        profiles_collection.update_one(
+            {"email": email},
+            {"$set": {
+                "first_name": first_name,
+                "last_name": last_name,
+                "country": country,
+                "profile_pic": profile_pic_url
+            }},
+            upsert=True
+        )
+
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('profile'))
+
+    # Fetch profile only for GET requests (avoiding extra DB calls in POST)
+    profile = profiles_collection.find_one({"email": email})
+    return render_template("profile.html", profile=profile)
 
 @app.route("/suggestion")
 def suggestion():
