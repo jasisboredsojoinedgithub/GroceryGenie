@@ -25,6 +25,7 @@
             >Dashboard</a
           >
         </li>
+        {% if session.get('email') %}
         <li>
           <a
             href="{{ url_for('profile') }}"
@@ -32,7 +33,6 @@
             >Profile</a
           >
         </li>
-        {% if session.get('username') %}
         <li>
           <a
             href="{{ url_for('inventory_page') }}"
