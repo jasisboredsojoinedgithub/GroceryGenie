@@ -8,7 +8,7 @@ from config import MONGO_URI, SECRET_KEY
 from bcrypt import hashpw, gensalt, checkpw
 from werkzeug.utils import secure_filename
 
-# Load variables from .env file
+# Load environment variables first
 load_dotenv()
 
 # Initialize Flask app
