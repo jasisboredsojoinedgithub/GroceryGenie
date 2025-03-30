@@ -226,13 +226,13 @@ li {
 } */
 
 /* Style the form container */
-.container {
+.login-register {
     background: rgba(255, 255, 255, 0.9);
     padding: 20px;
     border-radius: 10px;
     text-align: center;
     box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
-    width: 320px;  /* Compact form width */
+    width: 320px; 
 }  
 
 /* Form inputs - Smaller input boxes */
