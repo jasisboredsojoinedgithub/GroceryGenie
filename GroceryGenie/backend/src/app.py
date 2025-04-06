@@ -4,9 +4,11 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from pymongo import MongoClient
 import openai
 from dotenv import load_dotenv  # Load environment variables from .env file
-from config import MONGO_URI, SECRET_KEY
+from config import MONGO_URI, SECRET_KEY, AZURE_STORAGE_CONNECTION_STRING, AZURE_STORAGE_CONTAINER_NAME
 from bcrypt import hashpw, gensalt, checkpw
 from werkzeug.utils import secure_filename
+from azure.storage.blob import BlobServiceClient
+import uuid  
 
 # Load environment variables first
 load_dotenv()
@@ -29,13 +31,15 @@ try:
 except Exception as e:
     print("MongoDB connection failed:", e)
 
+# Initialize Azure Blob Storage
+blob_service_client = BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
+container_name = AZURE_STORAGE_CONTAINER_NAME
+
 # Connect to the database and user collection
 client = MongoClient(MONGO_URI)
 db = client.get_database("GroceryGenieDB")
 users_collection = db.users
 profiles_collection = db.profiles
-
-
 
 # Temporary in-memor
 # y inventory (can be moved to MongoDB)
@@ -94,7 +98,7 @@ def register():
             # Hash the password before storing
             hashed_password = hashpw(password.encode('utf-8'), gensalt())
             user = {"email": email, "password": hashed_password}
-            print(hashed_password)
+            # print(hashed_password)
             users_collection.insert_one(user)
             session['email'] = email  # Auto-login after register
             flash('Registration successful! Welcome 🎉', 'success')
@@ -109,6 +113,10 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route("/profile", methods=['GET', 'POST'])
 def profile():
     if 'email' not in session:
@@ -116,28 +124,30 @@ def profile():
         return redirect(url_for('login'))
     
     email = session['email']
-    profile = profiles_collection.find_one({"email": email})
+
+    #Always fetch profile once, usable for both GET and POST
+    profile = profiles_collection.find_one({"email": email}) or {}
 
     if request.method == 'POST':
         first_name = request.form.get("first_name")
         last_name = request.form.get("last_name")
         country = request.form.get("country")
-
-        # Fetch profile only if we need previous values (avoiding unnecessary DB calls)
-        profile = profiles_collection.find_one({"email": email}) or {}
         
         # Handle profile picture upload
         if 'profile_pic' in request.files:
             file = request.files['profile_pic']
             if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(file_path)
-                profile_pic_url = f"static/images/profile_pics/{filename}"
+                filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
+                blob_client = blob_service_client.get_blob_client(container=container_name, blob=filename)
+
+                # Upload file to Azure Blob Storage
+                blob_client.upload_blob(file, overwrite=True)
+                profile_pic_url = f"https://{blob_service_client.account_name}.blob.core.windows.net/{container_name}/{filename}"
             else:
-                profile_pic_url = profile.get('profile_pic', 'static/images/default-profile.jpg')
+                profile_pic_url = profile.get('profile_pic', f"https://{blob_service_client.account_name}.blob.core.windows.net/{container_name}/default-profile.jpg")
+                
         else:
-            profile_pic_url = profile.get('profile_pic', 'static/images/default-profile.jpg')
+            profile_pic_url = profile.get('profile_pic', f"https://{blob_service_client.account_name}.blob.core.windows.net/{container_name}/default-profile.jpg")
 
         # Update or insert profile in the `profiles` collection
         profiles_collection.update_one(
@@ -154,8 +164,6 @@ def profile():
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('profile'))
 
-    # Fetch profile only for GET requests (avoiding extra DB calls in POST)
-    profile = profiles_collection.find_one({"email": email})
     return render_template("profile.html", profile=profile)
 
 @app.route("/suggestion")
