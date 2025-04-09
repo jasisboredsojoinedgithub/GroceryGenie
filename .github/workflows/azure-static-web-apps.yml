@@ -1,4 +1,3 @@
-
 name: Azure Static Web Apps CI/CD
 
 on:
@@ -15,31 +14,19 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
-    permissions:
-       id-token: write
-       contents: read
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
           lfs: false
-      - name: Build And Deploy
+
+      - name: Build and Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS }}
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_HAPPY_HILL_0C46DCD0F }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }} # Optional, for PR comments
           action: "upload"
-          app_location: "frontend"
-          api_location: "backend/src"
-          output_location: "frontend/build"
-
-  close_pull_request_job:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    name: Close Pull Request Job
-    steps:
-      - name: Close Pull Request
-        id: closepullrequest
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          action: "close"
+          app_location: "GroceryGenie/frontend"       # This is where your index.html or templates are
+          api_location: ""                             # Leave empty if you aren't using Azure Functions
+          output_location: ""                          # Leave empty for Flask or HTML/CSS/JS frontend
