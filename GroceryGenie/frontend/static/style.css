@@ -1,4 +1,4 @@
-html,body {
+html, body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     margin: 0;
@@ -7,9 +7,10 @@ html,body {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    height: auto;
-    overflow: hidden;
+    height: 100%;            
+    overflow-y: auto;        
 }
+
 
 /* Dashboard-specific layout */
 .container {
@@ -116,25 +117,6 @@ button:hover {
     background-color: #333;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
-}
-
-table, th, td {
-    border: 1px solid #ddd;
-}
-
-th, td {
-    padding: 8px;
-    text-align: left;
-}
-
-th {
-    background-color: #f2f2f2;
-}
-
 ul {
     list-style-type: none;
     padding: 0;
@@ -225,6 +207,25 @@ li {
     text-align: center;
 } */
 
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
 /* Style the form container */
 .container {
     background: rgba(255, 255, 255, 0.9);
@@ -232,7 +233,7 @@ li {
     border-radius: 10px;
     text-align: center;
     box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
-    width: 1320px;  /* Compact form width */
+    width: 1720px;  /* Compact form width */
 }  
 
 /* Form inputs - Smaller input boxes */

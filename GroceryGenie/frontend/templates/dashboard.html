@@ -32,178 +32,106 @@
     </div>
 </div>
 
-    <script>
-      $(document).ready(function () {
-        function loadInventory() {
-          $.ajax({
-            url: "/inventory",
-            type: "GET",
-            success: function (data) {
-              $("#inventoryTable tbody").empty();
-              data.forEach(function (item, index) {
-                addItemToTable(item.name, item.quantity, "", index);
-              });
-            },
-            error: function (err) {
-              console.error("Error loading inventory:", err);
-            },
-          });
-        }
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-        function addItemToTable(
-          name = "",
-          quantity = "",
-          expDate = "",
-          index = null
-        ) {
-          const itemIndex = index !== null ? `data-index="${index}"` : "";
-          const quantityOptions = Array.from(
-            { length: 100 },
-            (_, i) =>
-              `<option value="${i + 1}" ${
-                i + 1 == quantity ? "selected" : ""
-              }>${i + 1}</option>`
-          ).join("");
-          $("#inventoryTable tbody").append(`
-                    <tr ${itemIndex}>
-                        <td contenteditable="true">${name}</td>
-                        <td><select class="quantity">${quantityOptions}</select></td>
-                        <td><input type="date" class="expDate" value="${expDate}"></td>
-                        <td>
-                            <button class="deleteItem">Delete</button>
-                        </td>
-                    </tr>
-                `);
-        }
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-        function addItemToServer(name, quantity, expDate) {
-          $.ajax({
-            url: "/inventory",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({ name, quantity, expiration_date: expDate }),
-            success: function () {
-              loadInventory();
-            },
-            error: function (err) {
-              console.error("Error adding item:", err);
-            },
-          });
-        }
+<script>
+  $(document).ready(function () {
+    console.log("📦 GroceryGenie dashboard script loaded!");
 
-        function updateItemOnServer(index, name, quantity, expDate) {
-          $.ajax({
-            url: `/inventory/${index}`,
-            type: "PUT",
-            contentType: "application/json",
-            data: JSON.stringify({ name, quantity, expiration_date: expDate }),
-            success: function () {
-              loadInventory();
-            },
-            error: function (err) {
-              console.error("Error updating item:", err);
-            },
-          });
-        }
-
-        function deleteItemFromServer(index) {
-          $.ajax({
-            url: `/inventory/${index}`,
-            type: "DELETE",
-            success: function () {
-              loadInventory();
-            },
-            error: function (err) {
-              console.error("Error deleting item:", err);
-            },
-          });
-        }
-
-        $("#addItem").on("click", function () {
-          addItemToTable();
-        });
-
-        $(document).on("click", ".deleteItem", function () {
-          const index = $(this).closest("tr").data("index");
-          if (index !== undefined) {
-            deleteItemFromServer(index);
-          } else {
-            $(this).closest("tr").remove();
+    function loadInventory() {
+      $.ajax({
+        url: "/inventory",
+        type: "GET",
+        success: function (data) {
+          $("#inventoryTable tbody").empty();
+          if (Array.isArray(data)) {
+            data.forEach(function (item, index) {
+              addItemToTable(item.name, item.quantity, "", index);
+            });
           }
-        });
-
-        $(document).on(
-          "blur",
-          'td[contenteditable="true"], .quantity, .expDate',
-          function () {
-            const row = $(this).closest("tr");
-            const index = row.data("index");
-            const name = row.children("td").eq(0).text();
-            const quantity = row.find(".quantity").val();
-            const expDate = row.find(".expDate").val();
-
-            if (index !== undefined) {
-              updateItemOnServer(index, name, quantity, expDate);
-            } else {
-              addItemToServer(name, quantity, expDate);
-            }
-          }
-        );
-
-        $("#uploadFridge").on("click", function (event) {
-          event.preventDefault();
-
-          var formData = new FormData();
-          formData.append("file", $("#fileInput")[0].files[0]);
-
-          $.ajax({
-            url: "/analyze",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-              window.location.href = "/suggestion";
-            },
-            error: function (err) {
-              console.error("Error analyzing image:", err);
-            },
-          });
-        });
-
-        $("#uploadGrocery").on("click", function (event) {
-          event.preventDefault();
-
-          var formData = new FormData();
-          formData.append("grocery_receipt", $("#fileInput")[0].files[0]);
-
-          $.ajax({
-            url: "/grocery_analyze",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (data) {
-              data.forEach(function (item) {
-                addItemToTable(item.name, item.quantity);
-              });
-            },
-            error: function (err) {
-              console.error("Error analyzing grocery receipt:", err);
-            },
-          });
-        });
-
-        loadInventory();
+        },
+        error: function (err) {
+          console.error("Error loading inventory:", err);
+        },
       });
-    </script>
-    
+    }
+
+    function addItemToTable(name = "", quantity = "1", expDate = "", index = null) {
+      const itemIndex = index !== null ? `data-index="${index}"` : "";
+      const quantityOptions = Array.from(
+        { length: 100 },
+        (_, i) => `<option value="${i + 1}" ${i + 1 == quantity ? "selected" : ""}>${i + 1}</option>`
+      ).join("");
+
+      $("#inventoryTable tbody").append(`
+        <tr ${itemIndex}>
+            <td contenteditable="true">${name}</td>
+            <td><select class="quantity">${quantityOptions}</select></td>
+            <td><input type="date" class="expDate" value="${expDate}"></td>
+            <td><button class="deleteItem">Delete</button></td>
+        </tr>
+      `);
+    }
+
+    function addItemToServer(name, quantity, expDate) {
+      $.ajax({
+        url: "/inventory",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ name, quantity, expiration_date: expDate }),
+        success: function () {
+          loadInventory();
+        },
+        error: function (err) {
+          console.error("Error adding item:", err);
+        },
+      });
+    }
+
+    $("#uploadGrocery").on("click", function (event) {
+      event.preventDefault();
+      $.ajax({
+        url: "/grocery_analyze",
+        type: "POST",
+        success: function (data) {
+          console.log("✅ Grocery items received:", data);
+          if (Array.isArray(data)) {
+            data.forEach(function (item) {
+              addItemToTable(item.name, item.quantity);
+            });
+          } else {
+            console.error("❌ Unexpected response:", data);
+          }
+        },
+        error: function (err) {
+          console.error("Error analyzing grocery receipt:", err);
+        },
+      });
+    });
+
+    // ✅ Add this handler for the "Generate Recipes" button
+    $("#uploadFridge").on("click", function (event) {
+      event.preventDefault();
+      $.ajax({
+        url: "/analyze",
+        type: "POST",
+        success: function (response) {
+          if (response.redirect) {
+            window.location.href = response.redirect;
+          } else {
+            console.log("🍽️ Recipe generation complete");
+          }
+        },
+        error: function (err) {
+          console.error("❌ Error analyzing inventory:", err);
+        },
+      });
+    });
+
+    loadInventory();
+  });
+</script>
+
 {% endblock %}
-
-
-
-
-
-
-
-
