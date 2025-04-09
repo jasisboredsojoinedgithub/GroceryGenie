@@ -21,11 +21,11 @@ MONGO_URI = os.environ.get("MONGO_URI")
 if not MONGO_URI:
     raise ValueError("❌ MONGO_URI is not set.")
 try:
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+    client = MongoClient(MONGO_URI)
     client.admin.command('ping')
-    print("✅ MongoDB connection successful.")
+    print("MongoDB connection successful.")
 except Exception as e:
-    print("❌ MongoDB connection failed:", e)
+    print("MongoDB connection failed:", e)
 
 db = client.get_database("grocery_genie")
 users_collection = db.users
@@ -95,10 +95,10 @@ def logout():
 
 @app.route("/profile", methods=['GET', 'POST'])
 def profile():
-    if 'username' not in session:
+    if 'email' not in session:
         flash('Please log in first', 'warning')
         return redirect(url_for('login'))
-    user = users_collection.find_one({"username": session['username']})
+    user = users_collection.find_one({"email": session['email']})
     return render_template("profile.html", user=user)
 
 @app.route("/suggestion")
