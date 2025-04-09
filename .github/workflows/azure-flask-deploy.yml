@@ -3,6 +3,7 @@ name: Deploy Flask App to Azure
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:  # ✅ Enables manual trigger from GitHub UI
 
 jobs:
   build-and-deploy:
@@ -23,13 +24,11 @@ jobs:
         pip install -r requirement.txt
 
     - name: ✅ Run backend unit tests
-      run: 
-        python -m unittest discover backend/src/tests
-
+      run: python -m unittest discover backend/src/tests  # ✅ Corrected
 
     - name: 🚀 Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
-        app-name: grocerygenie-flask   # <--- your App Service name
+        app-name: grocerygenie-flask
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: .
