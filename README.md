@@ -38,3 +38,5 @@
 ├── requirements.txt
 ├── README.md
 ```
+
+![CI/CD](https://github.com/Rishikaashankar/GroceryGenie/actions/workflows/azure-flask-deploy.yml/badge.svg)
