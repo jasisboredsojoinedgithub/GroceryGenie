@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from pymongo import MongoClient
 import openai
 from dotenv import load_dotenv  # Load environment variables from .env file
-from config import MONGO_URI, SECRET_KEY, AZURE_STORAGE_CONNECTION_STRING, AZURE_STORAGE_CONTAINER_NAME
+from config import MONGO_URI, SECRET_KEY, AZURE_STORAGE_CONNECTION_STRING, AZURE_STORAGE_CONTAINER_NAME, AZURE_STORAGE_CONTAINER_GROCERY
 from bcrypt import hashpw, gensalt, checkpw
 from werkzeug.utils import secure_filename
 from azure.storage.blob import BlobServiceClient
@@ -33,7 +33,8 @@ except Exception as e:
 
 # Initialize Azure Blob Storage
 blob_service_client = BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
-container_name = AZURE_STORAGE_CONTAINER_NAME
+profile_pics_container = AZURE_STORAGE_CONTAINER_NAME
+grocery_items_container = AZURE_STORAGE_CONTAINER_GROCERY
 
 # Connect to the database and user collection
 client = MongoClient(MONGO_URI)
@@ -138,16 +139,16 @@ def profile():
             file = request.files['profile_pic']
             if file and allowed_file(file.filename):
                 filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
-                blob_client = blob_service_client.get_blob_client(container=container_name, blob=filename)
+                blob_client = blob_service_client.get_blob_client(container=profile_pics_container, blob=filename)
 
                 # Upload file to Azure Blob Storage
                 blob_client.upload_blob(file, overwrite=True)
-                profile_pic_url = f"https://{blob_service_client.account_name}.blob.core.windows.net/{container_name}/{filename}"
+                profile_pic_url = f"https://{blob_service_client.account_name}.blob.core.windows.net/{profile_pics_container}/{filename}"
             else:
-                profile_pic_url = profile.get('profile_pic', f"https://{blob_service_client.account_name}.blob.core.windows.net/{container_name}/default-profile.jpg")
+                profile_pic_url = profile.get('profile_pic', f"https://{blob_service_client.account_name}.blob.core.windows.net/{profile_pics_container}/default-profile.jpg")
                 
         else:
-            profile_pic_url = profile.get('profile_pic', f"https://{blob_service_client.account_name}.blob.core.windows.net/{container_name}/default-profile.jpg")
+            profile_pic_url = profile.get('profile_pic', f"https://{blob_service_client.account_name}.blob.core.windows.net/{profile_pics_container}/default-profile.jpg")
 
         # Update or insert profile in the `profiles` collection
         profiles_collection.update_one(
@@ -191,29 +192,73 @@ def recipe_details():
         return jsonify(recipe)
     else:
         return jsonify({"error": "Recipe not found"}), 404
+    
+@app.route('/grocery_analyze', methods=['POST'])
+def grocery_analyze():
+    if 'grocery_receipt' not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files['grocery_receipt']
+    if file.filename == '':
+        return jsonify({"error": "Empty filename"}), 400
+
+    try:
+        # Generate a unique filename
+        filename = secure_filename(file.filename)
+        blob_name = f"{uuid.uuid4()}_{filename}"
+
+        # Upload to Azure Blob Storage
+        blob_client = blob_service_client.get_blob_client(container=grocery_items_container, blob=blob_name)
+        blob_client.upload_blob(file.read(), overwrite=True)
+
+        # Generate public URL (assuming container has public access or using SAS)
+        image_url = f"https://{blob_service_client.account_name}.blob.core.windows.net/{grocery_items_container}/{blob_name}"
+
+        # Send image to OpenAI analyzer
+        grocery_items = analyze_image_with_openai(image_url)
+
+        # Optional: Add each item to your inventory list (or store in DB later)
+        for item in grocery_items:
+            inventory.append(item)
+
+        return jsonify(grocery_items), 200
+
+    except Exception as e:
+        print("Error during grocery receipt analysis:", e)
+        return jsonify({"error": str(e)}), 500
+    
+def analyze_image_with_openai(image_url):
+    # This is a placeholder; replace with actual OpenAI API call
+    print(f"Analyzing image at URL: {image_url}")
+    # Simulated result
+    return [
+        {"name": "Milk", "quantity": 1},
+        {"name": "Eggs", "quantity": 12},
+        {"name": "Bananas", "quantity": 6}
+    ]
 
 # Helper function to call OpenAI API with image analysis
-def analyze_image_with_openai(image_url):
-    openai.api_key = os.environ.get("OPENAI_API_KEY")
-    prompt = f"Given the image of a fridge here: {image_url}, list the top 3 recipes I can make from the ingredients."
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4-vision-preview",
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt},
-                        {"type": "image_url", "image_url": {"url": image_url}},
-                    ],
-                }
-            ],
-            max_tokens=300
-        )
-        return response['choices'][0]['message']['content']
-    except Exception as e:
-        print("OpenAI error:", e)
-        return {"error": str(e)}
+# def analyze_image_with_openai(image_url):
+#     openai.api_key = os.environ.get("OPENAI_API_KEY")
+#     prompt = f"Given the image of a fridge here: {image_url}, list the top 3 recipes I can make from the ingredients."
+#     try:
+#         response = openai.ChatCompletion.create(
+#             model="gpt-4-vision-preview",
+#             messages=[
+#                 {
+#                     "role": "user",
+#                     "content": [
+#                         {"type": "text", "text": prompt},
+#                         {"type": "image_url", "image_url": {"url": image_url}},
+#                     ],
+#                 }
+#             ],
+#             max_tokens=300
+#         )
+#         return response['choices'][0]['message']['content']
+#     except Exception as e:
+#         print("OpenAI error:", e)
+#         return {"error": str(e)}
 
 if __name__ == "__main__":
     app.run(debug=True)
