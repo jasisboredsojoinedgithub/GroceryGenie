@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Grocery Genie</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <script>
+      // Auto-hide flash messages after 5 seconds
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(() => {
+          const flashMessage = document.getElementById("flash-messages");
+          if (flashMessage) {
+            flashMessage.style.display = "none";
+          }
+        }, 5000);
+      });
+    </script>
+  </head>
+  <body>
+    <div class="container login-register">
+      <h2>Login to Grocery Genie</h2>
+
+      <!-- Flash Messages (For Registration Success or Errors) -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div id="flash-messages">
+        {% for category, message in messages %}
+        <p class="message {{ category }}">{{ message }}</p>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
+
+      <form action="{{ url_for('login') }}" method="POST">
+        <label>Email:</label>
+        <input type="email" name="email" required />
+
+        <label>Password:</label>
+        <input type="password" name="password" required />
+
+        <button type="submit" class="btnlogin">Login</button>
+      </form>
+
+      <p>
+        Don't have an account?
+        <a href="{{ url_for('register') }}">Register here</a>
+      </p>
+    </div>
+  </body>
+</html>
