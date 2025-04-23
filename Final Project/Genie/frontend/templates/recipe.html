@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fridge Tracker - Recipe</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .container {
+            max-width: 100%;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #000;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .close-button:hover {
+            background-color: #333;
+        }
+        .recipe-content {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            height: 80%;
+            overflow-y: auto;
+        }
+        .recipe-section {
+            width: 45%;
+            padding: 10px;
+            overflow-y: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <button class="close-button" onclick="window.history.back()">Exit</button>
+        <div class="recipe-content">
+            <div class="recipe-section">
+                <h3>Ingredients:</h3>
+                <div id="recipeIngredients"></div>
+            </div>
+            <div class="recipe-section">
+                <h3>Instructions:</h3>
+                <div id="recipeInstructions"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const recipeName = urlParams.get('name');
+
+            if (recipeName) {
+                $.ajax({
+                    url: '/recipe_details',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ recipe_name: recipeName }),
+                    success: function(response) {
+                        const markdown = response.detailed_recipe;
+                        const ingredientsIndex = markdown.indexOf('### Ingredients');
+                        const instructionsIndex = markdown.indexOf('### Instructions');
+                        
+                        if (ingredientsIndex !== -1 && instructionsIndex !== -1) {
+                            const ingredientsMarkdown = markdown.substring(ingredientsIndex + 17, instructionsIndex).trim();
+                            const instructionsMarkdown = markdown.substring(instructionsIndex + 18).trim();
+                            
+                            $('#recipeIngredients').html(marked(ingredientsMarkdown));
+                            $('#recipeInstructions').html(marked(instructionsMarkdown));
+                        } else {
+                            $('#recipeIngredients').html('Ingredients not found');
+                            $('#recipeInstructions').html('Instructions not found');
+                        }
+                    },
+                    error: function(err) {
+                        console.error('Error fetching recipe details:', err);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

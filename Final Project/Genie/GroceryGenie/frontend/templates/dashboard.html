@@ -1,0 +1,299 @@
+{% extends 'base.html' %} {% block title %}Dashboard - GroceryGenie{% endblock
+%} {% block content %}
+<div class="container">
+  <h1>GroceryGenie</h1>
+  <div id="spinner" style="display: none; text-align: center; margin: 20px">
+    <p>Processing... Please wait</p>
+    <div class="loader"></div>
+  </div>
+
+  <div
+    id="toast"
+    style="
+      display: none;
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #333;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      z-index: 9999;
+    "
+  ></div>
+  <div class="upload-container">
+    <div class="file-input">
+      <label for="fileInput">Choose Image</label>
+      <input id="fileInput" type="file" name="file" accept="image/*" />
+
+      <!-- Preview container (loading + image) -->
+      <div id="imagePreviewContainer">
+        <img id="previewImage" src="#" alt="Image Preview" />
+        <div id="imageSpinner" class="image-loader"></div>
+      </div>
+    </div>
+    <button id="uploadGrocery" type="button">
+      Upload Your Grocery items to Store
+    </button>
+    <button id="uploadFridge" type="button">Generate Recipes</button>
+  </div>
+  <div class="inventory-container">
+    <h2>What's in Your Fridge</h2>
+    <table id="inventoryTable">
+      <thead>
+        <tr>
+          <th>Items</th>
+          <th>Quantity</th>
+          <th>Exp. Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Inventory items will be dynamically added here -->
+      </tbody>
+    </table>
+    <button id="addItem">Add Item</button>
+  </div>
+</div>
+
+<!-- Local jQuery -->
+<script src="{{ url_for('static', filename='js/jquery-3.6.4.min.js') }}"></script>
+
+<script>
+  $(document).ready(function () {
+    document
+      .getElementById("fileInput")
+      .addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        const previewImage = document.getElementById("previewImage");
+        const spinner = document.getElementById("imageSpinner");
+
+        if (!file) {
+          previewImage.style.display = "none";
+          return;
+        }
+
+        const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+        const maxSize = 2 * 1024 * 1024;
+
+        if (!validTypes.includes(file.type)) {
+          alert("Invalid file type. Please upload JPG or PNG.");
+          e.target.value = "";
+          previewImage.style.display = "none";
+          return;
+        }
+
+        if (file.size > maxSize) {
+          alert("Image size too large. Maximum 2MB allowed.");
+          e.target.value = "";
+          previewImage.style.display = "none";
+          return;
+        }
+
+        const reader = new FileReader();
+        spinner.style.display = "block";
+        previewImage.style.display = "none";
+
+        reader.onload = function (event) {
+          setTimeout(() => {
+            previewImage.src = event.target.result;
+            previewImage.style.display = "block";
+            spinner.style.display = "none";
+          }, 500); // simulate load time
+        };
+
+        reader.readAsDataURL(file);
+      });
+
+    function loadInventory() {
+      $.ajax({
+        url: "/inventory",
+        type: "GET",
+        success: function (data) {
+          $("#inventoryTable tbody").empty();
+          data = JSON.parse(data);
+          data.forEach(function (item, index) {
+            addItemToTable(item.name, item.quantity, "", index);
+          });
+        },
+        error: function (err) {
+          console.error("Error loading inventory:", err);
+        },
+      });
+    }
+
+    function showSpinner() {
+      $("#spinner").show();
+    }
+
+    function hideSpinner() {
+      $("#spinner").hide();
+    }
+
+    function showToast(message, duration = 3000) {
+      const $toast = $("#toast");
+      $toast.text(message).fadeIn();
+      setTimeout(() => $toast.fadeOut(), duration);
+    }
+
+    function addItemToTable(
+      name = "",
+      quantity = "",
+      expDate = "",
+      index = null
+    ) {
+      const itemIndex = index !== null ? `data-index="${index}"` : "";
+      const quantityOptions = Array.from(
+        { length: 100 },
+        (_, i) =>
+          `<option value="${i + 1}" ${i + 1 == quantity ? "selected" : ""}>${
+            i + 1
+          }</option>`
+      ).join("");
+      $("#inventoryTable tbody").append(`
+                    <tr ${itemIndex}>
+                        <td contenteditable="true">${name}</td>
+                        <td><select class="quantity">${quantityOptions}</select></td>
+                        <td><input type="date" class="expDate" value="${expDate}"></td>
+                        <td>
+                            <button class="deleteItem">Delete</button>
+                        </td>
+                    </tr>
+                `);
+    }
+
+    function addItemToServer(name, quantity, expDate) {
+      $.ajax({
+        url: "/inventory",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ name, quantity, expiration_date: expDate }),
+        success: function () {
+          loadInventory();
+        },
+        error: function (err) {
+          console.error("Error adding item:", err);
+        },
+      });
+    }
+
+    function updateItemOnServer(index, name, quantity, expDate) {
+      $.ajax({
+        url: `/inventory/${index}`,
+        type: "PUT",
+        contentType: "application/json",
+        data: JSON.stringify({ name, quantity, expiration_date: expDate }),
+        success: function () {
+          loadInventory();
+        },
+        error: function (err) {
+          console.error("Error updating item:", err);
+        },
+      });
+    }
+
+    function deleteItemFromServer(index) {
+      $.ajax({
+        url: `/inventory/${index}`,
+        type: "DELETE",
+        success: function () {
+          loadInventory();
+        },
+        error: function (err) {
+          console.error("Error deleting item:", err);
+        },
+      });
+    }
+
+    $("#addItem").on("click", function () {
+      addItemToTable();
+    });
+
+    $(document).on("click", ".deleteItem", function () {
+      const index = $(this).closest("tr").data("index");
+      if (index !== undefined) {
+        deleteItemFromServer(index);
+      } else {
+        $(this).closest("tr").remove();
+      }
+    });
+
+    $(document).on(
+      "blur",
+      'td[contenteditable="true"], .quantity, .expDate',
+      function () {
+        const row = $(this).closest("tr");
+        const index = row.data("index");
+        const name = row.children("td").eq(0).text();
+        const quantity = row.find(".quantity").val();
+        const expDate = row.find(".expDate").val();
+
+        if (index !== undefined) {
+          updateItemOnServer(index, name, quantity, expDate);
+        } else {
+          addItemToServer(name, quantity, expDate);
+        }
+      }
+    );
+
+    $("#uploadFridge").on("click", function (event) {
+      event.preventDefault();
+
+      var formData = new FormData();
+      formData.append("file", $("#fileInput")[0].files[0]);
+
+      $.ajax({
+        url: "/analyze",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (response) {
+          window.location.href = "/suggestion";
+        },
+        error: function (err) {
+          console.error("Error analyzing image:", err);
+        },
+      });
+    });
+
+    $("#uploadGrocery").on("click", function (event) {
+      event.preventDefault();
+      const fileInput = $("#fileInput")[0].files[0];
+      if (!fileInput) {
+        showToast("Please select an image.");
+        return;
+      }
+
+      var formData = new FormData();
+      formData.append("grocery_receipt", fileInput);
+
+      showSpinner();
+
+      $.ajax({
+        url: "/grocery_analyze",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (data) {
+          data.forEach(function (item) {
+            addItemToTable(item.name, item.quantity);
+            showToast("Inventory updated with detected grocery items!");
+            hideSpinner();
+            location.reload();
+          });
+        },
+        error: function (err) {
+          console.error("Error analyzing grocery receipt:", err);
+          showToast("Failed to analyze image.");
+          hideSpinner();
+        },
+      });
+    });
+
+    loadInventory();
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fridge Tracker - Suggestions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .container {
+            max-width: 100%;
+            margin: auto;
+            text-align: center;
+            padding: 20px;
+        }
+        .recipe-button {
+            width: 40%;
+            margin: 10px auto;
+            padding: 15px;
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            text-align: center;
+            font-size: 18px;
+        }
+        .recipe-button:hover {
+            background-color: #333;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #000;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .close-button:hover {
+            background-color: #333;
+        }
+        .recipe-content {
+            display: flex;
+            justify-content: space-between;
+        }
+        .recipe-section {
+            width: 45%;
+            padding: 10px;
+            overflow-y: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <button onclick="window.history.back()" style="position: absolute; top: 10px; left: 10px;">Back</button>
+        <h2>What you can eat in your fridge:</h2>
+        <div id="recipesList">
+            {% for recipe in recipes %}
+                <button class="recipe-button" onclick="showRecipe('{{ recipe }}')">{{ recipe }}</button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="modal" id="recipeModal">
+        <button class="close-button" onclick="closeModal()">×</button>
+        <div class="recipe-content">
+            <div class="recipe-section">
+                <h3>Ingredients:</h3>
+                <div id="recipeIngredients"></div>
+            </div>
+            <div class="recipe-section">
+                <h3>Instructions:</h3>
+                <div id="recipeInstructions"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function showRecipe(recipeName) {
+            $.ajax({
+                url: '/recipe_details',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ recipe_name: recipeName }),
+                success: function(response) {
+                    const markdown = response.detailed_recipe;
+                    const ingredientsIndex = markdown.indexOf('### Ingredients');
+                    const instructionsIndex = markdown.indexOf('### Instructions');
+                    
+                    if (ingredientsIndex !== -1 && instructionsIndex !== -1) {
+                        const ingredientsMarkdown = markdown.substring(ingredientsIndex + 17, instructionsIndex).trim();
+                        const instructionsMarkdown = markdown.substring(instructionsIndex + 18).trim();
+                        
+                        $('#recipeIngredients').html(marked.parse(ingredientsMarkdown));
+                        $('#recipeInstructions').html(marked.parse(instructionsMarkdown));
+                    } else {
+                        $('#recipeIngredients').html('Ingredients not found');
+                        $('#recipeInstructions').html('Instructions not found');
+                    }
+                    
+                    $('#modalOverlay').show();
+                    $('#recipeModal').show();
+                },
+                error: function(err) {
+                    console.error('Error fetching recipe details:', err);
+                }
+            });
+        }
+
+        function closeModal() {
+            $('#modalOverlay').hide();
+            $('#recipeModal').hide();
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
