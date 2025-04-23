@@ -78,6 +78,23 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <ul class="nav-list">
+        <li><a href="{{ url_for('home') }}" class="{% if request.path == url_for('home') %}active{% endif %}">Home</a></li>
+        <li><a href="{{ url_for('dashboard') }}" class="{% if request.path == url_for('dashboard') %}active{% endif %}">Dashboard</a></li>
+        {% if session.get('email') %}
+          <li><a href="{{ url_for('inventory_page') }}" class="{% if request.path == url_for('inventory_page') %}active{% endif %}">Inventory</a></li>
+          <li><a href="{{ url_for('suggestion') }}" class="{% if request.path == url_for('suggestion') %}active{% endif %}">Suggestions</a></li>
+          <li><a href="{{ url_for('profile') }}" class="{% if request.path == url_for('profile') %}active{% endif %}">Profile</a></li>
+          <li><a href="{{ url_for('logout') }}">Logout ({{ session['email'].split('@')[0] }})</a></li>
+        {% else %}
+          <li><a href="{{ url_for('login') }}" class="{% if request.path == url_for('login') %}active{% endif %}">Login</a></li>
+          <li><a href="{{ url_for('register') }}" class="{% if request.path == url_for('register') %}active{% endif %}">Register</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+
     <div class="container">
         <button onclick="window.history.back()" style="position: absolute; top: 10px; left: 10px;">Back</button>
         <h2>What you can eat in your fridge:</h2>
@@ -143,8 +160,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
