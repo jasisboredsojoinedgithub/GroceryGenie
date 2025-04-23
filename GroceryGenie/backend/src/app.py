@@ -103,7 +103,10 @@ def profile():
 
 @app.route("/suggestion")
 def suggestion():
-    recipes = session.get('recipe_suggestions', [])
+    # 从 session 拿到完整的 recipe_suggestions（每个元素是 dict）
+    full_recipes = session.get('recipe_suggestions', [])
+    # 前端只需要 name 字段来渲染按钮
+    recipes = [{'name': r.get('name')} for r in full_recipes]
     return render_template("suggestion.html", recipes=recipes)
 
 @app.route("/analyze", methods=["POST"])
@@ -160,12 +163,15 @@ def inventory_page():
 @app.route("/recipe_details", methods=["POST"])
 def recipe_details():
     recipe_name = request.json.get("recipe_name")
-    recipes = session.get('recipe_suggestions', [])
-    recipe = next((r for r in recipes if r['name'] == recipe_name), None)
-    if recipe:
-        return jsonify(recipe)
-    else:
+    full_recipes = session.get('recipe_suggestions', [])
+
+    # 在完整列表中找到匹配 name 的那一项
+    recipe = next((r for r in full_recipes if r.get('name') == recipe_name), None)
+    if not recipe:
         return jsonify({"error": "Recipe not found"}), 404
+
+    # 返回完整的 recipe dict，前端会读取 ingredients & detailed_recipe
+    return jsonify(recipe)
 
 def analyze_image_with_openai(input_data, task="grocery"):
     openai.api_key = os.environ.get("OPENAI_API_KEY")

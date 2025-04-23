@@ -1,84 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fridge Tracker - Suggestions</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Suggestions</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
+        /* you can also move these into style.css */
         .container {
             max-width: 100%;
             margin: auto;
             text-align: center;
             padding: 20px;
+            position: relative;
         }
         .recipe-button {
             width: 40%;
             margin: 10px auto;
             padding: 15px;
             background-color: #000;
-            color: white;
+            color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             display: block;
-            text-align: center;
             font-size: 18px;
+            text-align: center;
         }
         .recipe-button:hover {
             background-color: #333;
         }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            padding: 20px;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            z-index: 1000;
-            overflow-y: auto;
-            max-height: 80vh;
-        }
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
             z-index: 999;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%,-50%);
+            width: 80%;
+            max-height: 80vh;
+            overflow-y: auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
         }
         .close-button {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #000;
-            color: white;
-            border: none;
-            padding: 5px 10px;
+            top: 10px; right: 10px;
+            background: #000; color: #fff;
+            border: none; padding: 5px 10px;
             cursor: pointer;
         }
-        .close-button:hover {
-            background-color: #333;
-        }
+        .close-button:hover { background: #333; }
         .recipe-content {
             display: flex;
             justify-content: space-between;
+            gap: 20px;
         }
         .recipe-section {
             width: 45%;
-            padding: 10px;
-            overflow-y: auto;
+            text-align: left;
         }
     </style>
+    <!-- for markdown rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-    <!-- Navigation Bar -->
+    <!-- NAVBAR -->
     <nav class="navbar">
       <ul class="nav-list">
         <li><a href="{{ url_for('home') }}" class="{% if request.path == url_for('home') %}active{% endif %}">Home</a></li>
@@ -89,74 +84,81 @@
           <li><a href="{{ url_for('profile') }}" class="{% if request.path == url_for('profile') %}active{% endif %}">Profile</a></li>
           <li><a href="{{ url_for('logout') }}">Logout ({{ session['email'].split('@')[0] }})</a></li>
         {% else %}
-          <li><a href="{{ url_for('login') }}" class="{% if request.path == url_for('login') %}active{% endif %}">Login</a></li>
-          <li><a href="{{ url_for('register') }}" class="{% if request.path == url_for('register') %}active{% endif %}">Register</a></li>
+          <li><a href="{{ url_for('login') }}">Login</a></li>
+          <li><a href="{{ url_for('register') }}">Register</a></li>
         {% endif %}
       </ul>
     </nav>
 
+    <!-- MAIN CONTENT -->
     <div class="container">
-        <button onclick="window.history.back()" style="position: absolute; top: 10px; left: 10px;">Back</button>
+        <button onclick="window.history.back()" style="position:absolute; top:10px; left:10px;">
+          ← Back
+        </button>
         <h2>What you can eat in your fridge:</h2>
         <div id="recipesList">
             {% for recipe in recipes %}
-                <button class="recipe-button" onclick="showRecipe('{{ recipe }}')">{{ recipe }}</button>
+                <button
+                  class="recipe-button"
+                  data-recipe="{{ recipe.name|e }}"
+                  onclick="showRecipe(this.dataset.recipe)">
+                  {{ recipe.name }}
+                </button>
             {% endfor %}
         </div>
     </div>
-
+    
+    <!-- MODAL OVERLAY & CONTENT -->
     <div class="modal-overlay" id="modalOverlay"></div>
     <div class="modal" id="recipeModal">
         <button class="close-button" onclick="closeModal()">×</button>
         <div class="recipe-content">
             <div class="recipe-section">
-                <h3>Ingredients:</h3>
-                <div id="recipeIngredients"></div>
+                <h3>Ingredients</h3>
+                <ul id="recipeIngredients"></ul>
             </div>
             <div class="recipe-section">
-                <h3>Instructions:</h3>
+                <h3>Instructions</h3>
                 <div id="recipeInstructions"></div>
             </div>
         </div>
     </div>
 
+    <!-- SCRIPTS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        function showRecipe(recipeName) {
-            $.ajax({
-                url: '/recipe_details',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ recipe_name: recipeName }),
-                success: function(response) {
-                    const markdown = response.detailed_recipe;
-                    const ingredientsIndex = markdown.indexOf('### Ingredients');
-                    const instructionsIndex = markdown.indexOf('### Instructions');
-                    
-                    if (ingredientsIndex !== -1 && instructionsIndex !== -1) {
-                        const ingredientsMarkdown = markdown.substring(ingredientsIndex + 17, instructionsIndex).trim();
-                        const instructionsMarkdown = markdown.substring(instructionsIndex + 18).trim();
-                        
-                        $('#recipeIngredients').html(marked.parse(ingredientsMarkdown));
-                        $('#recipeInstructions').html(marked.parse(instructionsMarkdown));
-                    } else {
-                        $('#recipeIngredients').html('Ingredients not found');
-                        $('#recipeInstructions').html('Instructions not found');
-                    }
-                    
-                    $('#modalOverlay').show();
-                    $('#recipeModal').show();
-                },
-                error: function(err) {
-                    console.error('Error fetching recipe details:', err);
-                }
-            });
-        }
+    function showRecipe(recipeName) {
+        $.ajax({
+            url: '/recipe_details',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ recipe_name: recipeName }),
+            success: function(response) {
+                // populate ingredients list
+                $('#recipeIngredients').empty();
+                response.ingredients.forEach(item =>
+                  $('#recipeIngredients').append(
+                    $('<li/>').text(item)
+                  )
+                );
 
-        function closeModal() {
-            $('#modalOverlay').hide();
-            $('#recipeModal').hide();
-        }
+                // parse and render markdown instructions
+                $('#recipeInstructions').html(
+                  marked.parse(response.detailed_recipe)
+                );
+
+                // display modal
+                $('#modalOverlay, #recipeModal').show();
+            },
+            error: function(err) {
+                console.error('Failed to fetch recipe:', err);
+            }
+        });
+    }
+
+    function closeModal() {
+        $('#modalOverlay, #recipeModal').hide();
+    }
     </script>
 </body>
 </html>
