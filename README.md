@@ -1,12 +1,3 @@
-# GroceryGenie
-
-- **Dimpal Lad** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
-- **Jiamin Wang** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
-- **Monitha Kothuru** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
-- **Niharika Mysore Prakasha** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
-- **Sai Abhishek Yadav Battula** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
-- **Rishika Shankara** - [GroceryGenie](https://github.com/jasisboredsojoinedgithub/GroceryGenie)
-
 ## Directory Structure
 
 ```
@@ -38,3 +29,57 @@
 ├── requirements.txt
 ├── README.md
 ```
+# 🛒 Grocery Genie – AI-Powered Grocery Management System
+
+An AI-driven web application that simplifies grocery tracking and meal planning using image recognition and intelligent recipe recommendations.
+
+🚀 Built with Flask, React, Azure, and Google AI APIs  
+
+---
+
+## 👥 Team
+- Dimpal Lad  
+- Jiamin Wang  
+- Monitha Kothuru  
+- Niharika Mysore Prakasha  
+- Sai Abhishek Yadav Battula  
+- Rishika Shankara  
+
+---
+
+## ✨ Key Features
+
+- 📸 AI-powered grocery recognition using image uploads  
+- 📦 Smart inventory management with real-time updates  
+- 🍽️ Recipe recommendation engine based on available ingredients  
+- 🔐 Secure user authentication and profile management  
+- ☁️ Cloud deployment with CI/CD pipelines  
+
+---
+
+## 🧠 Tech Stack
+
+**Frontend:** HTML, CSS, JavaScript  
+**Backend:** Flask (Python)  
+**Database:** MongoDB / PostgreSQL  
+**Cloud & DevOps:** Azure App Service, GitHub Actions  
+**AI Integration:** Google Vision API, Gemini API  
+
+---
+
+## 👩‍💻 My Contribution
+
+- Developed and tested backend APIs for authentication and inventory features  
+- Set up CI/CD pipeline using GitHub Actions for automated deployment  
+- Performed API testing using Postman  
+- Contributed to integration of AI features and backend services  
+
+---
+
+## 🏗️ Architecture Overview
+
+- User uploads grocery image  
+- Image processed using Google Vision API  
+- Extracted items stored in database  
+- Recipe suggestions generated using AI  
+
